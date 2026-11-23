@@ -1,0 +1,219 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Explore’O · Administration</title><link rel="icon" type="image/png" href="/logo.png"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"><style>
+*{box-sizing:border-box}body{margin:0;background:#f1f4f9;color:#14213a;font:14px 'DM Sans',sans-serif}.login{max-width:390px;margin:12vh auto;background:white;padding:30px;border-radius:20px;box-shadow:0 20px 60px #061a3720}.login h1{margin-top:0;color:#08244c}.login input,.panel input,.panel textarea{width:100%;padding:12px;border:1px solid #dce3ed;border-radius:9px;margin:8px 0 14px}.btn{border:0;background:#ff650c;color:white;padding:12px 18px;border-radius:9px;font-weight:800;cursor:pointer}.layout{display:none;min-height:100vh;grid-template-columns:235px 1fr}.side{background:#071b3b;color:white;padding:25px 18px}.side h2{margin:0 0 30px}.side-brand{display:flex;align-items:center;gap:10px;margin-bottom:25px;font-size:19px;font-weight:800}.side-brand img{width:65px;height:65px;object-fit:contain;background:white;border-radius:10px}.login-logo{display:block;width:150px;height:125px;object-fit:contain;margin:0 auto 15px}.side a{display:block;color:#dce7f5;padding:13px;border-radius:9px;text-decoration:none}.side a:hover{background:#17447d}.main{padding:28px;min-width:0}.head{display:flex;justify-content:space-between;align-items:center;gap:15px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:25px 0}.stat,.panel{background:white;border-radius:15px;padding:20px;box-shadow:0 6px 25px #061a3709}.stat small{color:#78869a}.stat b{display:block;font-size:27px;color:#0752a5;margin-top:8px}.panel{margin-bottom:20px;overflow:auto}.panel h3{margin-top:0}table{width:100%;border-collapse:collapse;min-width:550px}th,td{text-align:left;padding:12px;border-bottom:1px solid #edf0f5}th{color:#6c7a90;font-size:12px}.row{display:grid;grid-template-columns:1fr 1fr;gap:15px}.muted{color:#77869b;font-size:12px}.danger{background:#e84a42}.ok{color:#14945c}@media(max-width:850px){.layout{grid-template-columns:1fr}.side{padding:12px;display:flex;gap:7px;overflow:auto}.side h2{display:none}.side-brand{margin:0 10px 0 0;flex-shrink:0}.side-brand img{width:42px;height:42px}.side a{white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}.main{padding:15px}.row{grid-template-columns:1fr}}</style></head><body>
+<div class="login" id="login"><img class="login-logo" src="/logo.png" alt="Logo Explore’O"><h1>Explore’O Admin</h1><p class="muted">Midira hitantanana ny tranonkala.</p><form onsubmit="login(event)"><label>Solonanarana</label><input id="user" value="admin" required><label>Tenimiafina</label><input id="pass" type="password" required><button class="btn" style="width:100%">Se connecter</button></form><p id="err" class="muted"></p><p><a href="/">← Miverina amin'ny site</a></p></div>
+<div class="layout" id="app"><aside class="side"><div class="side-brand"><img src="/logo.png" alt="Explore’O"><span>Explore’O</span></div><a href="#" onclick="tab('dash')">▦ Tableau de bord</a><a href="#" onclick="tab('dest')">⌖ Destinations</a><a href="#" onclick="tab('book')">▣ Réservations</a><a href="#" onclick="tab('knowledge')">✦ Base IA</a><a href="#" onclick="tab('site')">✎ Contenu du site</a><a href="#" onclick="tab('account')">⚙ Mon compte</a><a href="/" target="_blank">↗ Voir le site</a><a href="#" onclick="logout()">⇥ Déconnexion</a></aside><main class="main"><div class="head"><div><h1 id="title">Tableau de bord</h1><p class="muted">Fanaraha-maso ny Explore’O</p></div><span class="ok">● Connecté : <b id="currentAdmin">Admin</b></span></div><section id="dash"><div class="stats"><div class="stat"><small>Destinations</small><b id="sDest">—</b></div><div class="stat"><small>Réservations</small><b id="sBook">—</b></div><div class="stat"><small>Nouvelles demandes</small><b id="sNew">—</b></div><div class="stat"><small>État du site</small><b style="font-size:20px">En ligne</b></div></div><div class="panel"><h3>Dernières réservations</h3><div id="recent"></div></div></section>
+<section id="dest" style="display:none"><div class="panel"><h3>Ajouter une destination</h3><form onsubmit="addDest(event)" class="row"><div><label>Nom</label><input name="name" required><label>Région</label><input name="region" required><label>Ville proche</label><input name="near"></div><div><label>Catégorie</label><input name="category" placeholder="Plage, Nature..."><label>URL de l’image</label><input name="image" type="url" placeholder="https://..."><label>Description</label><textarea name="description" rows="3"></textarea></div><button class="btn">Ajouter</button></form></div><div class="panel"><h3>Liste des destinations</h3><div id="destTable"></div></div></section>
+<section id="book" style="display:none"><div class="panel"><h3>Toutes les réservations</h3><div id="bookTable"></div></div></section>
+<section id="knowledge" style="display:none">
+<div class="panel">
+<h3>✦ Base de connaissances Explore’O IA</h3>
+<p class="muted">Ampidiro eto ny vaovao ofisialy hampiasain'ny IA rehefa mamaly ny mpitsidika.</p>
+<form onsubmit="addKnowledge(event)">
+<div class="row">
+<div>
+<label>Catégorie</label>
+<select name="category" required>
+<option>Général</option><option>Tarif</option><option>Destination</option><option>Circuit</option><option>Hébergement</option><option>Transport</option><option>Réservation</option><option>Conditions</option><option>Contact</option><option>FAQ</option><option>Service</option>
+</select>
+<label>Lohahevitra / Anarana</label>
+<input name="title" required maxlength="180" placeholder="Ohatra: Tarif circuit Andasibe">
+</div>
+<div>
+<label>Fanazavana feno</label>
+<textarea name="content" rows="7" required maxlength="5000" placeholder="Ampidiro eto ny antsipiriany: vidiny, toerana, daty, fepetra, sns."></textarea>
+</div>
+</div>
+<button class="btn">＋ Tehirizo ao amin'ny IA</button>
+</form>
+</div>
+<div class="panel">
+<h3>📚 Ireo données voatahiry</h3>
+<div id="knowledgeTable"></div>
+</div>
+</section>
+<section id="site" style="display:none">
+<div class="panel">
+<h3>Contenu général du site public</h3>
+<p class="muted">Ovay eto ny votoatin'ny pejy public.</p>
+<div id="siteEditor">Chargement...</div>
+</div>
+<div class="panel">
+<h3>Circuits touristiques</h3>
+<div id="circuitEditor"></div>
+<button class="btn" type="button" onclick="addCircuit()">＋ Ajouter un circuit</button>
+</div>
+<div class="panel">
+<button class="btn" type="button" onclick="saveSiteContent()">Enregistrer les modifications</button>
+<p id="siteMessage" class="muted"></p>
+</div>
+</section>
+<section id="account" style="display:none">
+<div class="panel">
+<h3>⚙ Mon compte administrateur</h3>
+<p class="muted">Ovay eto ny solonanarana sy ny tenimiafinao manokana.</p>
+<form onsubmit="saveAccount(event)">
+<label>Solonanarana vaovao</label>
+<input id="accountUsername" required minlength="3" maxlength="40">
+<label>Tenimiafina taloha</label>
+<input id="currentPassword" type="password" required autocomplete="current-password">
+<label>Tenimiafina vaovao (tsy voatery raha solonanarana ihany no ovaina)</label>
+<input id="newPassword" type="password" minlength="8" autocomplete="new-password">
+<button class="btn" type="submit">Enregistrer les modifications</button>
+<p id="accountMessage" class="muted"></p>
+</form>
+</div>
+</section>
+</main></div>
+<script>
+let token='',destinations=[],bookings=[],knowledge=[],siteContent={};const $=id=>document.getElementById(id);
+async function api(url,opts={}){opts.headers={...(opts.headers||{}),Authorization:'Bearer '+token,'Content-Type':'application/json'};const r=await fetch(url,opts);const j=await r.json();if(!r.ok)throw Error(j.error||'Erreur');return j}
+async function login(e){e.preventDefault();$('err').textContent='Connexion...';try{const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('user').value,password:$('pass').value})});const j=await r.json();if(!r.ok)throw Error(j.error);token=j.token;$('login').style.display='none';$('app').style.display='grid';$('currentAdmin').textContent=j.username;await refresh()}catch(x){$('err').textContent=x.message}}
+async function refresh(){destinations=await api('/api/destinations');bookings=await api('/api/admin/bookings');knowledge=await api('/api/admin/knowledge');siteContent=await api('/api/admin/site-content');$('sDest').textContent=destinations.length;$('sBook').textContent=bookings.length;$('sNew').textContent=bookings.filter(b=>b.status==='Vaovao').length;renderBooks('recent',bookings.slice(0,5));renderBooks('bookTable',bookings);renderDest();renderKnowledge();renderSiteContent()}
+function tab(id){['dash','dest','book','knowledge','site','account'].forEach(x=>$(x).style.display=x===id?'block':'none');$('title').textContent={dash:'Tableau de bord',dest:'Destinations',book:'Réservations',knowledge:'Base de connaissances IA',site:'Contenu du site public',account:'Mon compte'}[id];if(id==='account')loadAccount()}
+function renderBooks(id,arr){$(id).innerHTML=arr.length?`<table><thead><tr><th>Client</th><th>Destination</th><th>Date</th><th>Personnes</th><th>Statut</th><th>Action</th></tr></thead><tbody>${arr.map(b=>`<tr><td>${esc(b.name)}<br><small>${esc(b.phone)}</small></td><td>${esc(b.destination)}</td><td>${esc(b.date)}</td><td>${b.people}</td><td><select onchange="status('${b.id}',this.value)"><option ${b.status==='Vaovao'?'selected':''}>Vaovao</option><option ${b.status==='Eo am-pikarakarana'?'selected':''}>Eo am-pikarakarana</option><option ${b.status==='Voamarina'?'selected':''}>Voamarina</option><option ${b.status==='Nofoanana'?'selected':''}>Nofoanana</option></select></td><td><button class="btn danger" onclick="delBook('${b.id}')">Supprimer</button></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Aucun résultat.</p>'}
+function renderDest(){$('destTable').innerHTML=`<table><thead><tr><th>Destination</th><th>Région</th><th>Catégorie</th><th>Action</th></tr></thead><tbody>${destinations.map(d=>`<tr><td>${esc(d.name)}</td><td>${esc(d.region)}</td><td>${esc(d.category||'')}</td><td><button class="btn danger" onclick="delDest('${d.id}')">Supprimer</button></td></tr>`).join('')}</tbody></table>`}
+async function addDest(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target));try{await api('/api/admin/destinations',{method:'POST',body:JSON.stringify(d)});e.target.reset();await refresh();alert('Destination ajoutée.')}catch(x){alert(x.message)}}
+async function status(id,s){try{await api('/api/admin/bookings/'+id,{method:'PATCH',body:JSON.stringify({status:s})});await refresh()}catch(e){alert(e.message)}}
+async function delBook(id){if(confirm('Supprimer cette réservation ?')){await api('/api/admin/bookings/'+id,{method:'DELETE'});await refresh()}}
+async function delDest(id){if(confirm('Supprimer cette destination ?')){await api('/api/admin/destinations/'+id,{method:'DELETE'});await refresh()}}
+async function logout(){try{await api('/api/admin/logout',{method:'POST'})}catch{}location.reload()}
+
+function renderKnowledge(){
+ const el=$('knowledgeTable');
+ if(!knowledge.length){el.innerHTML='<p class="muted">Mbola tsy misy données. Ampidiro eo ambony ny vaovao voalohany.</p>';return}
+ el.innerHTML='<table><thead><tr><th>Catégorie</th><th>Lohahevitra</th><th>Fanazavana</th><th>Action</th></tr></thead><tbody>'+
+ knowledge.map(k=>'<tr><td>'+esc(k.category)+'</td><td>'+esc(k.title)+'</td><td style="white-space:pre-wrap">'+esc(k.content)+'</td><td><button class="btn" onclick="editKnowledge(\''+esc(k.id)+'\')">Modifier</button> <button class="btn danger" onclick="delKnowledge(\''+esc(k.id)+'\')">Supprimer</button></td></tr>').join('')+
+ '</tbody></table>';
+}
+async function addKnowledge(e){
+ e.preventDefault();
+ const d=Object.fromEntries(new FormData(e.target));
+ try{
+  await api('/api/admin/knowledge',{method:'POST',body:JSON.stringify(d)});
+  e.target.reset();await refresh();alert('Voatahiry ho an’ny Explore’O IA.');
+ }catch(x){alert(x.message)}
+}
+async function editKnowledge(id){
+ const k=knowledge.find(x=>x.id===id);if(!k)return;
+ const category=prompt('Catégorie',k.category);if(category===null)return;
+ const title=prompt('Lohahevitra',k.title);if(title===null)return;
+ const content=prompt('Fanazavana (azonao atao ny manoratra andalana maromaro)',k.content);if(content===null)return;
+ if(!title.trim()||!content.trim()){alert('Tsy maintsy feno ny lohahevitra sy fanazavana.');return}
+ try{
+  await api('/api/admin/knowledge/'+encodeURIComponent(id),{method:'PUT',body:JSON.stringify({category,title,content})});
+  await refresh();alert('Novaina ny données.');
+ }catch(x){alert(x.message)}
+}
+async function delKnowledge(id){
+ if(!confirm('Hamafa tanteraka ity donnée ity ve?'))return;
+ try{await api('/api/admin/knowledge/'+encodeURIComponent(id),{method:'DELETE'});await refresh()}
+ catch(x){alert(x.message)}
+}
+
+
+function renderSiteContent(){
+ const c=siteContent||{},h=c.hero||{},p=c.promo||{},w=c.why||{},n=c.newsletter||{},f=c.footer||{};
+ const field=(label,key,value='')=>`<label>${label}</label><input data-site="${key}" value="${esc(value)}">`;
+ const area=(label,key,value='')=>`<label>${label}</label><textarea data-site="${key}" rows="3">${esc(value)}</textarea>`;
+ $('siteEditor').innerHTML=`
+ <h4>Identité</h4>${field('Nom du site','brand',c.brand)}
+ <h4>Page d’accueil — Hero</h4>
+ ${field('Petit titre','hero.eyebrow',h.eyebrow)}
+ ${field('Grand titre','hero.title',h.title)}
+ ${area('Description','hero.description',h.description)}
+ ${field('Bouton principal','hero.primaryLabel',h.primaryLabel)}
+ ${field('Bouton secondaire','hero.secondaryLabel',h.secondaryLabel)}
+ <h4>Avantages</h4>
+ <p class="muted">Lohateny | Description, andalana iray isaky ny avantage.</p>
+ <textarea data-site="benefits" rows="5">${esc((c.benefits||[]).map(x=>x.title+' | '+x.description).join('\n'))}</textarea>
+ <h4>Promotion</h4>
+ ${field('Petit titre','promo.eyebrow',p.eyebrow)}
+ ${field('Grand titre','promo.title',p.title)}
+ ${area('Description','promo.description',p.description)}
+ ${field('Texte du bouton','promo.buttonLabel',p.buttonLabel)}
+ ${field('Lien du bouton','promo.buttonLink',p.buttonLink)}
+ <h4>Pourquoi choisir Explore’O ?</h4>
+ ${field('Titre','why.title',w.title)}
+ <textarea data-site="why.items" rows="5">${esc((w.items||[]).join('\n'))}</textarea>
+ <h4>Newsletter</h4>
+ ${field('Titre','newsletter.title',n.title)}
+ ${area('Description','newsletter.description',n.description)}
+ ${field('Bouton','newsletter.buttonLabel',n.buttonLabel)}
+ <h4>Footer et contacts</h4>
+ ${area('Description','footer.description',f.description)}
+ ${field('E-mail','footer.contactEmail',f.contactEmail)}
+ ${field('Téléphone','footer.contactPhone',f.contactPhone)}
+ ${field('Facebook','footer.facebook',f.facebook)}
+ ${field('Copyright','footer.copyright',f.copyright)}`;
+ renderCircuits();
+}
+function renderCircuits(){
+ const arr=siteContent.circuits||[];
+ $('circuitEditor').innerHTML=arr.map((c,i)=>`
+ <div class="panel" style="border:1px solid #dce3ed">
+ <h4>Circuit ${i+1}</h4>
+ <label>Nom</label><input data-circuit="${i}" data-key="title" value="${esc(c.title)}">
+ <label>Image URL</label><input data-circuit="${i}" data-key="image" value="${esc(c.image)}">
+ <label>Lieux</label><input data-circuit="${i}" data-key="places" value="${esc(c.places)}">
+ <label>Durée</label><input data-circuit="${i}" data-key="duration" value="${esc(c.duration)}">
+ <label>Description</label><textarea data-circuit="${i}" data-key="description">${esc(c.description)}</textarea>
+ <button class="btn danger" type="button" onclick="removeCircuit(${i})">Supprimer</button>
+ </div>`).join('')||'<p>Aucun circuit.</p>';
+}
+function addCircuit(){
+ if(!siteContent.circuits)siteContent.circuits=[];
+ siteContent.circuits.push({id:'circuit-'+Date.now(),title:'Nouveau circuit',image:'',places:'',duration:'',description:''});
+ renderCircuits();
+}
+function removeCircuit(i){
+ if(confirm('Supprimer ce circuit ?')){siteContent.circuits.splice(i,1);renderCircuits();}
+}
+async function saveSiteContent(){
+ try{
+  const get=k=>document.querySelector(`[data-site="${k}"]`)?.value||'';
+  const c=siteContent;
+  c.brand=get('brand');
+  c.hero={eyebrow:get('hero.eyebrow'),title:get('hero.title'),description:get('hero.description'),primaryLabel:get('hero.primaryLabel'),secondaryLabel:get('hero.secondaryLabel')};
+  c.benefits=get('benefits').split('\n').filter(Boolean).map(line=>{const a=line.split('|');return {title:(a.shift()||'').trim(),description:a.join('|').trim()}});
+  c.promo={eyebrow:get('promo.eyebrow'),title:get('promo.title'),description:get('promo.description'),buttonLabel:get('promo.buttonLabel'),buttonLink:get('promo.buttonLink')};
+  c.why={title:get('why.title'),items:get('why.items').split('\n').map(x=>x.trim()).filter(Boolean)};
+  c.newsletter={title:get('newsletter.title'),description:get('newsletter.description'),buttonLabel:get('newsletter.buttonLabel')};
+  c.footer={description:get('footer.description'),contactEmail:get('footer.contactEmail'),contactPhone:get('footer.contactPhone'),facebook:get('footer.facebook'),copyright:get('footer.copyright')};
+  document.querySelectorAll('[data-circuit]').forEach(el=>{const i=Number(el.dataset.circuit);if(c.circuits[i])c.circuits[i][el.dataset.key]=el.value;});
+  const r=await api('/api/admin/site-content',{method:'PUT',body:JSON.stringify(c)});
+  $('siteMessage').textContent=r.message||'Enregistré';
+  alert('Vita voatahiry ny contenu.');
+ }catch(e){alert(e.message);$('siteMessage').textContent=e.message;}
+}
+
+async function loadAccount(){
+ try{
+  const me=await api('/api/admin/me');
+  $('accountUsername').value=me.username;
+  $('currentAdmin').textContent=me.username;
+  $('accountMessage').textContent='';
+ }catch(e){$('accountMessage').textContent=e.message}
+}
+async function saveAccount(e){
+ e.preventDefault();
+ const username=$('accountUsername').value.trim();
+ const currentPassword=$('currentPassword').value;
+ const newPassword=$('newPassword').value;
+ try{
+  const result=await api('/api/admin/account',{
+   method:'PUT',
+   body:JSON.stringify({username,currentPassword,newPassword})
+  });
+  $('currentAdmin').textContent=result.username;
+  $('currentPassword').value='';
+  $('newPassword').value='';
+  $('accountMessage').textContent=result.message;
+  alert(result.message);
+ }catch(err){
+  $('accountMessage').textContent=err.message;
+  alert(err.message);
+ }
+}
+
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+</script></body></html>

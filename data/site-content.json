@@ -1,0 +1,91 @@
+{
+  "brand": "Explore’O",
+  "hero": {
+    "eyebrow": "MADAGASCAR · L’ÎLE AUX MILLE DÉCOUVERTES",
+    "title": "Explore’O autrement.",
+    "description": "Voyagez, explorez et vivez des expériences uniques au cœur de l’île rouge. La beauté de Madagascar vous attend.",
+    "primaryLabel": "Explorer les destinations →",
+    "secondaryLabel": "▷ En savoir plus"
+  },
+  "benefits": [
+    {
+      "title": "Voyages sur mesure",
+      "description": "Selon vos envies"
+    },
+    {
+      "title": "Réservation sécurisée",
+      "description": "Suivi de votre demande"
+    },
+    {
+      "title": "Assistance 24/7",
+      "description": "Toujours à vos côtés"
+    },
+    {
+      "title": "Expériences uniques",
+      "description": "Découverte garantie"
+    }
+  ],
+  "circuits": [
+    {
+      "id": "circuit-1",
+      "title": "Aventure Tsingy & Baobabs",
+      "image": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+      "places": "Morondava · Bekopaka",
+      "duration": "8 jours",
+      "description": "Découvrez les paysages spectaculaires des Tsingy et les célèbres baobabs de Madagascar."
+    },
+    {
+      "id": "circuit-2",
+      "title": "Nature Isalo & Ranomafana",
+      "image": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=80",
+      "places": "Isalo · Ranomafana",
+      "duration": "7 jours",
+      "description": "Explorez les parcs naturels et la biodiversité exceptionnelle de Madagascar."
+    },
+    {
+      "id": "circuit-3",
+      "title": "Évasion Nosy Be",
+      "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+      "places": "Nosy Be · Nosy Iranja",
+      "duration": "5 jours",
+      "description": "Profitez des plages, des îles et des eaux turquoise du nord-ouest malgache."
+    },
+    {
+      "id": "circuit-1795441644404",
+      "title": "Nouveau circuit",
+      "image": "Vsbs",
+      "places": "Shhw",
+      "duration": "2j",
+      "description": "Shsh"
+    }
+  ],
+  "promo": {
+    "eyebrow": "L’ÎLE ROUGE VOUS ATTEND",
+    "title": "Un voyage. Mille émotions.",
+    "description": "Explore’O vous accompagne pour découvrir les trésors naturels et culturels de Madagascar, à votre rythme.",
+    "buttonLabel": "Découvrir Madagascar →",
+    "buttonLink": "#destinations"
+  },
+  "why": {
+    "title": "Pourquoi choisir Explore’O ?",
+    "items": [
+      "Plus de 100 idées de destinations",
+      "Circuits adaptés à votre budget",
+      "Découvertes et rencontres authentiques",
+      "Demande de réservation simple",
+      "Assistant voyage Explore’O IA"
+    ]
+  },
+  "newsletter": {
+    "title": "Recevez nos inspirations de voyage",
+    "description": "Découvrez les merveilles de Madagascar et nos actualités.",
+    "buttonLabel": "S’inscrire"
+  },
+  "footer": {
+    "description": "Explore’O, votre compagnon pour découvrir Madagascar.",
+    "contactEmail": "herimamy63@gmail.com",
+    "contactPhone": "0388731421 / 0347624223",
+    "facebook": "Explore'O Explore'O ",
+    "copyright": "© Explore’O — Tous droits réservés"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "exploreo-madagascar",
+  "version": "1.0.0",
+  "description": "Explore'O Madagascar tourism portal with admin, bookings and optional local AI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "express-rate-limit": "^7.5.0"
+  }
+}

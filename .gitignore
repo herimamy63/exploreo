@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+*.backup*
+*.before-*
+*.pre-*
+*.tar.gz
+__pycache__/
+*.pyc
+data/bookings.json
+data/admin-users.json
