@@ -11,3 +11,7 @@ __pycache__/
 *.pyc
 data/bookings.json
 data/admin-users.json
+
+# Sauvegardes locales du serveur
+server-before-postgres-patch.js
+server-pre-postgres-*.js

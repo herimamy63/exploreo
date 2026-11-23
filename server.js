@@ -1,9 +1,10 @@
 const express = require("express");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+
+const { initializeStorage, read, write } = require("./storage");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,64 +15,6 @@ const BOOK_FILE = path.join(DATA_DIR, "bookings.json");
 const KNOW_FILE = path.join(DATA_DIR, "knowledge.json");
 const SITE_FILE = path.join(DATA_DIR, "site-content.json");
 const ADMIN_FILE = path.join(DATA_DIR, "admin-users.json");
-fs.mkdirSync(DATA_DIR, {recursive:true});
-
-const starter = require("./data/destinations.json");
-function read(file, fallback){ try { return JSON.parse(fs.readFileSync(file,"utf8")); } catch { return fallback; } }
-function write(file, value){ fs.writeFileSync(file, JSON.stringify(value,null,2)); }
-if (!fs.existsSync(DEST_FILE)) write(DEST_FILE, starter);
-if (!fs.existsSync(BOOK_FILE)) write(BOOK_FILE, []);
-if (!fs.existsSync(KNOW_FILE)) write(KNOW_FILE, []);
-if (!fs.existsSync(SITE_FILE)) write(SITE_FILE, {
-  brand: "Explore’O",
-  hero: {
-    eyebrow: "MADAGASCAR · L’ÎLE AUX MILLE DÉCOUVERTES",
-    title: "Explore’O autrement.",
-    description: "Voyagez, explorez et vivez des expériences uniques au cœur de l’île rouge. La beauté de Madagascar vous attend.",
-    primaryLabel: "Explorer les destinations →",
-    secondaryLabel: "▷ En savoir plus"
-  },
-  benefits: [
-    {title:"Voyages sur mesure", description:"Selon vos envies"},
-    {title:"Réservation sécurisée", description:"Suivi de votre demande"},
-    {title:"Assistance 24/7", description:"Toujours à vos côtés"},
-    {title:"Expériences uniques", description:"Découverte garantie"}
-  ],
-  circuits: [
-    {id:"circuit-1",title:"Aventure Tsingy & Baobabs",image:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",places:"Morondava · Bekopaka",duration:"8 jours",description:"Découvrez les paysages spectaculaires des Tsingy et les célèbres baobabs de Madagascar."},
-    {id:"circuit-2",title:"Nature Isalo & Ranomafana",image:"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=80",places:"Isalo · Ranomafana",duration:"7 jours",description:"Explorez les parcs naturels et la biodiversité exceptionnelle de Madagascar."},
-    {id:"circuit-3",title:"Évasion Nosy Be",image:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",places:"Nosy Be · Nosy Iranja",duration:"5 jours",description:"Profitez des plages, des îles et des eaux turquoise du nord-ouest malgache."}
-  ],
-  promo: {
-    eyebrow:"L’ÎLE ROUGE VOUS ATTEND",
-    title:"Un voyage. Mille émotions.",
-    description:"Explore’O vous accompagne pour découvrir les trésors naturels et culturels de Madagascar, à votre rythme.",
-    buttonLabel:"Découvrir Madagascar →",
-    buttonLink:"#destinations"
-  },
-  why: {
-    title:"Pourquoi choisir Explore’O ?",
-    items:[
-      "Plus de 100 idées de destinations",
-      "Circuits adaptés à votre budget",
-      "Découvertes et rencontres authentiques",
-      "Demande de réservation simple",
-      "Assistant voyage Explore’O IA"
-    ]
-  },
-  newsletter: {
-    title:"Recevez nos inspirations de voyage",
-    description:"Découvrez les merveilles de Madagascar et nos actualités.",
-    buttonLabel:"S’inscrire"
-  },
-  footer: {
-    description:"Explore’O, votre compagnon pour découvrir Madagascar.",
-    contactEmail:"",
-    contactPhone:"",
-    facebook:"",
-    copyright:"© Explore’O — Tous droits réservés"
-  }
-});
 
 app.use(helmet({contentSecurityPolicy:false}));
 app.use(express.json({limit:"2mb"}));
@@ -89,6 +32,10 @@ function auth(req,res,next){
   next();
 }
 
+function asyncRoute(handler) {
+  return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
+}
+
 app.get("/api/status", async (req,res)=>{
   let ai=false;
   try { const r=await fetch("http://127.0.0.1:8080/health",{signal:AbortSignal.timeout(1200)}); ai=r.ok; } catch {}
@@ -99,14 +46,14 @@ app.get("/api/destinations/:slug",(req,res)=>{
   const d=read(DEST_FILE,[]).find(x=>x.slug===req.params.slug);
   d?res.json(d):res.status(404).json({error:"Tsy hita"});
 });
-app.post("/api/bookings",(req,res)=>{
+app.post("/api/bookings",asyncRoute(async(req,res)=>{
   const {name,email,phone,destination,date,people,message}=req.body||{};
   if(!name||!phone||!destination||!date||!people) return res.status(400).json({error:"Fenoy azafady ny saha rehetra ilaina."});
   const all=read(BOOK_FILE,[]);
   const item={id:Date.now().toString(),name,email:email||"",phone,destination,date,people:Number(people),message:message||"",status:"Vaovao",createdAt:new Date().toISOString()};
-  all.unshift(item); write(BOOK_FILE,all);
+  all.unshift(item); await write(BOOK_FILE,all);
   res.json({ok:true,message:"Voaray ny fangatahanao. Hifandray aminao izahay.",booking:item});
-});
+}));
 app.post("/api/admin/login",(req,res)=>{
   const {username,password}=req.body||{};
   const accounts=read(ADMIN_FILE,[]);
@@ -137,7 +84,7 @@ app.get("/api/admin/me",auth,(req,res)=>{
   res.json({id:account.id,username:account.username});
 });
 
-app.put("/api/admin/account",auth,(req,res)=>{
+app.put("/api/admin/account",auth,asyncRoute(async(req,res)=>{
   const {username,currentPassword,newPassword}=req.body||{};
   const accounts=read(ADMIN_FILE,[]);
   const index=accounts.findIndex(a=>a.id===req.adminId);
@@ -172,9 +119,9 @@ app.put("/api/admin/account",auth,(req,res)=>{
     account.passwordHash=crypto.scryptSync(String(newPassword),account.salt,64).toString("hex");
   }
 
-  write(ADMIN_FILE,accounts);
+  await write(ADMIN_FILE,accounts);
   res.json({ok:true,message:"Voatahiry ny fanovana ny kaonty.",username:account.username});
-});
+}));
 
 app.post("/api/admin/logout",auth,(req,res)=>{
   const token=(req.headers.authorization||"").replace(/^Bearer\s+/i,""); sessions.delete(token); res.json({ok:true});
@@ -182,14 +129,14 @@ app.post("/api/admin/logout",auth,(req,res)=>{
 app.get("/api/admin/bookings",auth,(req,res)=>res.json(read(BOOK_FILE,[])));
 
 app.get("/api/admin/knowledge",auth,(req,res)=>res.json(read(KNOW_FILE,[])));
-app.post("/api/admin/knowledge",auth,(req,res)=>{
+app.post("/api/admin/knowledge",auth,asyncRoute(async(req,res)=>{
   const {category,title,content}=req.body||{};
   if(!title||!content) return res.status(400).json({error:"Ilaina ny lohateny sy ny fanazavana."});
   const all=read(KNOW_FILE,[]);
   const item={id:Date.now().toString(),category:String(category||"Général").slice(0,80),title:String(title).slice(0,180),content:String(content).slice(0,5000),updatedAt:new Date().toISOString()};
-  all.unshift(item); write(KNOW_FILE,all); res.json({ok:true,item});
-});
-app.put("/api/admin/knowledge/:id",auth,(req,res)=>{
+  all.unshift(item); await write(KNOW_FILE,all); res.json({ok:true,item});
+}));
+app.put("/api/admin/knowledge/:id",auth,asyncRoute(async(req,res)=>{
   const all=read(KNOW_FILE,[]), item=all.find(x=>x.id===req.params.id);
   if(!item) return res.status(404).json({error:"Tsy hita"});
   const {category,title,content}=req.body||{};
@@ -198,35 +145,35 @@ app.put("/api/admin/knowledge/:id",auth,(req,res)=>{
   item.title=String(title).slice(0,180);
   item.content=String(content).slice(0,5000);
   item.updatedAt=new Date().toISOString();
-  write(KNOW_FILE,all); res.json({ok:true,item});
-});
-app.delete("/api/admin/knowledge/:id",auth,(req,res)=>{
-  write(KNOW_FILE,read(KNOW_FILE,[]).filter(x=>x.id!==req.params.id));
+  await write(KNOW_FILE,all); res.json({ok:true,item});
+}));
+app.delete("/api/admin/knowledge/:id",auth,asyncRoute(async(req,res)=>{
+  await write(KNOW_FILE,read(KNOW_FILE,[]).filter(x=>x.id!==req.params.id));
   res.json({ok:true});
-});
+}));
 
-app.patch("/api/admin/bookings/:id",auth,(req,res)=>{
+app.patch("/api/admin/bookings/:id",auth,asyncRoute(async(req,res)=>{
   const all=read(BOOK_FILE,[]); const item=all.find(x=>x.id===req.params.id);
   if(!item) return res.status(404).json({error:"Tsy hita"});
-  item.status=String(req.body.status||"Eo am-pikarakarana"); write(BOOK_FILE,all); res.json(item);
-});
-app.delete("/api/admin/bookings/:id",auth,(req,res)=>{
-  write(BOOK_FILE,read(BOOK_FILE,[]).filter(x=>x.id!==req.params.id)); res.json({ok:true});
-});
-app.post("/api/admin/destinations",auth,(req,res)=>{
+  item.status=String(req.body.status||"Eo am-pikarakarana"); await write(BOOK_FILE,all); res.json(item);
+}));
+app.delete("/api/admin/bookings/:id",auth,asyncRoute(async(req,res)=>{
+  await write(BOOK_FILE,read(BOOK_FILE,[]).filter(x=>x.id!==req.params.id)); res.json({ok:true});
+}));
+app.post("/api/admin/destinations",auth,asyncRoute(async(req,res)=>{
   const all=read(DEST_FILE,[]); const d=req.body||{};
   if(!d.name||!d.region) return res.status(400).json({error:"Anarana sy faritra no ilaina."});
   d.slug=d.slug||d.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  d.id=d.id||Date.now().toString(); all.unshift(d); write(DEST_FILE,all); res.json(d);
-});
-app.put("/api/admin/destinations/:id",auth,(req,res)=>{
+  d.id=d.id||Date.now().toString(); all.unshift(d); await write(DEST_FILE,all); res.json(d);
+}));
+app.put("/api/admin/destinations/:id",auth,asyncRoute(async(req,res)=>{
   const all=read(DEST_FILE,[]); const i=all.findIndex(x=>x.id===req.params.id);
   if(i<0) return res.status(404).json({error:"Tsy hita"});
-  all[i]={...all[i],...req.body}; write(DEST_FILE,all); res.json(all[i]);
-});
-app.delete("/api/admin/destinations/:id",auth,(req,res)=>{
-  write(DEST_FILE,read(DEST_FILE,[]).filter(x=>x.id!==req.params.id)); res.json({ok:true});
-});
+  all[i]={...all[i],...req.body}; await write(DEST_FILE,all); res.json(all[i]);
+}));
+app.delete("/api/admin/destinations/:id",auth,asyncRoute(async(req,res)=>{
+  await write(DEST_FILE,read(DEST_FILE,[]).filter(x=>x.id!==req.params.id)); res.json({ok:true});
+}));
 
 // Contenu modifiable du site public
 app.get("/api/site-content",(req,res)=>{
@@ -235,13 +182,13 @@ app.get("/api/site-content",(req,res)=>{
 app.get("/api/admin/site-content",auth,(req,res)=>{
   res.json(read(SITE_FILE,{}));
 });
-app.put("/api/admin/site-content",auth,(req,res)=>{
+app.put("/api/admin/site-content",auth,asyncRoute(async(req,res)=>{
   const content=req.body;
   if(!content || typeof content!=="object" || Array.isArray(content))
     return res.status(400).json({error:"Données invalides."});
-  write(SITE_FILE,content);
+  await write(SITE_FILE,content);
   res.json({ok:true,message:"Contenu du site enregistré."});
-});
+}));
 
 app.post("/api/ai",async(req,res)=>{
   const question=String((req.body||{}).message||"").trim();
@@ -322,4 +269,13 @@ app.post("/api/ai",async(req,res)=>{
   }catch(e){res.status(503).json({error:"Tsy mandeha ny IA offline amin'izao. Alefaso aloha ny llama-server ao amin'ny port 8080."});}
 });
 app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
-app.listen(PORT,"0.0.0.0",()=>console.log(`Explore'O mandeha: http://127.0.0.1:${PORT}`));
+initializeStorage()
+  .then(() => {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Explore'O mandeha sur le port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Erreur initialisation stockage:", err.message);
+    process.exit(1);
+  });
