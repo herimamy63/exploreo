@@ -39,7 +39,41 @@ function openBooking(dest=''){document.getElementById('bookingModal').classList.
 function closeBooking(){document.getElementById('bookingModal').classList.remove('open')}
 async function submitBooking(e){e.preventDefault();const data=Object.fromEntries(new FormData(e.target));const p=document.getElementById('bookingFeedback');p.textContent='Alefa...';try{const r=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json();p.textContent=j.message||j.error;if(r.ok)e.target.reset();}catch{p.textContent='Tsy afaka mifandray amin’ny serveur.'}}
 function toggleChat(){document.getElementById('chatbox').classList.toggle('open');}
-async function sendAI(e){e.preventDefault();const input=document.getElementById('aiInput'),msg=input.value.trim();if(!msg)return;const box=document.getElementById('chatmessages');box.innerHTML+=`<div class="bubble me">${escapeHtml(msg)}</div><div class="bubble" id="thinking">Explore’O IA réfléchit…</div>`;input.value='';box.scrollTop=box.scrollHeight;try{const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});const j=await r.json();document.getElementById('thinking').textContent=j.answer||j.error||'Erreur IA';}catch{document.getElementById('thinking').textContent='Serveur IA indisponible.'}box.scrollTop=box.scrollHeight;}
+async function sendAI(e){
+ e.preventDefault();
+
+ const input=document.getElementById('aiInput');
+ const msg=input.value.trim();
+ if(!msg)return;
+
+ const box=document.getElementById('chatmessages');
+
+ const userBubble=document.createElement('div');
+ userBubble.className='bubble me';
+ userBubble.textContent=msg;
+
+ const answerBubble=document.createElement('div');
+ answerBubble.className='bubble';
+ answerBubble.textContent='Explore’O IA réfléchit…';
+
+ box.append(userBubble,answerBubble);
+ input.value='';
+ box.scrollTop=box.scrollHeight;
+
+ try{
+   const r=await fetch('/api/ai',{
+     method:'POST',
+     headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({message:msg})
+   });
+   const j=await r.json();
+   answerBubble.textContent=j.answer||j.error||'Erreur IA';
+ }catch{
+   answerBubble.textContent='Serveur IA indisponible.';
+ }
+
+ box.scrollTop=box.scrollHeight;
+}
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 function safeSiteText(v){return String(v ?? "");}
