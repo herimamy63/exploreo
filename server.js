@@ -3,6 +3,21 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
 const crypto = require("crypto");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({secure:true});
+
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {fileSize: 8 * 1024 * 1024},
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype || !file.mimetype.startsWith("image/")) {
+      return cb(new Error("Sary ihany no azo alefa."));
+    }
+    cb(null, true);
+  }
+});
 
 const { initializeStorage, read, write } = require("./storage");
 
@@ -35,6 +50,28 @@ function auth(req,res,next){
 function asyncRoute(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 }
+
+app.post("/api/admin/upload-image", auth, imageUpload.single("image"), asyncRoute(async(req,res)=>{
+  if (!process.env.CLOUDINARY_URL) {
+    return res.status(503).json({error:"Cloudinary tsy mbola voarindra ao amin'ny serveur."});
+  }
+  if (!req.file) {
+    return res.status(400).json({error:"Misafidiana sary aloha."});
+  }
+
+  const result = await new Promise((resolve,reject)=>{
+    const stream = cloudinary.uploader.upload_stream(
+      {folder:"exploreo/destinations", resource_type:"image"},
+      (error,result)=>{
+        if(error) return reject(error);
+        resolve(result);
+      }
+    );
+    stream.end(req.file.buffer);
+  });
+
+  res.json({url:result.secure_url,publicId:result.public_id});
+}));
 
 app.get("/api/status", async (req,res)=>{
   let ai=false;
@@ -349,6 +386,32 @@ app.post("/api/ai",async(req,res)=>{
     });
   }
 });
+
+app.use((err, req, res, next) => {
+  console.error("Erreur serveur:", err.message);
+
+  if (res.headersSent) return next(err);
+
+  if (err instanceof multer.MulterError) {
+    const message = err.code === "LIMIT_FILE_SIZE"
+      ? "Ny sary dia tsy tokony hihoatra ny 8 Mo."
+      : "Tsy nahomby ny fandefasana sary.";
+    return res.status(400).json({error:message});
+  }
+
+  if (err.message === "Sary ihany no azo alefa.") {
+    return res.status(400).json({error:err.message});
+  }
+
+  if (req.path === "/api/admin/upload-image") {
+    return res.status(502).json({
+      error:"Tsy nahomby ny fandefasana sary any Cloudinary. Hamarino ny connexion sy ny configuration."
+    });
+  }
+
+  res.status(500).json({error:"Nisy olana tamin'ny serveur."});
+});
+
 app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 initializeStorage()
   .then(() => {

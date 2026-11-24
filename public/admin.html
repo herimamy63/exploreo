@@ -2,7 +2,11 @@
 *{box-sizing:border-box}body{margin:0;background:#f1f4f9;color:#14213a;font:14px 'DM Sans',sans-serif}.login{max-width:390px;margin:12vh auto;background:white;padding:30px;border-radius:20px;box-shadow:0 20px 60px #061a3720}.login h1{margin-top:0;color:#08244c}.login input,.panel input,.panel textarea{width:100%;padding:12px;border:1px solid #dce3ed;border-radius:9px;margin:8px 0 14px}.btn{border:0;background:#ff650c;color:white;padding:12px 18px;border-radius:9px;font-weight:800;cursor:pointer}.layout{display:none;min-height:100vh;grid-template-columns:235px 1fr}.side{background:#071b3b;color:white;padding:25px 18px}.side h2{margin:0 0 30px}.side-brand{display:flex;align-items:center;gap:10px;margin-bottom:25px;font-size:19px;font-weight:800}.side-brand img{width:65px;height:65px;object-fit:contain;background:white;border-radius:10px}.login-logo{display:block;width:150px;height:125px;object-fit:contain;margin:0 auto 15px}.side a{display:block;color:#dce7f5;padding:13px;border-radius:9px;text-decoration:none}.side a:hover{background:#17447d}.main{padding:28px;min-width:0}.head{display:flex;justify-content:space-between;align-items:center;gap:15px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:25px 0}.stat,.panel{background:white;border-radius:15px;padding:20px;box-shadow:0 6px 25px #061a3709}.stat small{color:#78869a}.stat b{display:block;font-size:27px;color:#0752a5;margin-top:8px}.panel{margin-bottom:20px;overflow:auto}.panel h3{margin-top:0}table{width:100%;border-collapse:collapse;min-width:550px}th,td{text-align:left;padding:12px;border-bottom:1px solid #edf0f5}th{color:#6c7a90;font-size:12px}.row{display:grid;grid-template-columns:1fr 1fr;gap:15px}.muted{color:#77869b;font-size:12px}.danger{background:#e84a42}.ok{color:#14945c}@media(max-width:850px){.layout{grid-template-columns:1fr}.side{padding:12px;display:flex;gap:7px;overflow:auto}.side h2{display:none}.side-brand{margin:0 10px 0 0;flex-shrink:0}.side-brand img{width:42px;height:42px}.side a{white-space:nowrap}.stats{grid-template-columns:repeat(2,1fr)}.main{padding:15px}.row{grid-template-columns:1fr}}</style></head><body>
 <div class="login" id="login"><img class="login-logo" src="/logo.png" alt="Logo Explore’O"><h1>Explore’O Admin</h1><p class="muted">Midira hitantanana ny tranonkala.</p><form onsubmit="login(event)"><label>Solonanarana</label><input id="user" value="admin" required><label>Tenimiafina</label><input id="pass" type="password" required><button class="btn" style="width:100%">Se connecter</button></form><p id="err" class="muted"></p><p><a href="/">← Miverina amin'ny site</a></p></div>
 <div class="layout" id="app"><aside class="side"><div class="side-brand"><img src="/logo.png" alt="Explore’O"><span>Explore’O</span></div><a href="#" onclick="tab('dash')">▦ Tableau de bord</a><a href="#" onclick="tab('dest')">⌖ Destinations</a><a href="#" onclick="tab('book')">▣ Réservations</a><a href="#" onclick="tab('knowledge')">✦ Base IA</a><a href="#" onclick="tab('site')">✎ Contenu du site</a><a href="#" onclick="tab('account')">⚙ Mon compte</a><a href="/" target="_blank">↗ Voir le site</a><a href="#" onclick="logout()">⇥ Déconnexion</a></aside><main class="main"><div class="head"><div><h1 id="title">Tableau de bord</h1><p class="muted">Fanaraha-maso ny Explore’O</p></div><span class="ok">● Connecté : <b id="currentAdmin">Admin</b></span></div><section id="dash"><div class="stats"><div class="stat"><small>Destinations</small><b id="sDest">—</b></div><div class="stat"><small>Réservations</small><b id="sBook">—</b></div><div class="stat"><small>Nouvelles demandes</small><b id="sNew">—</b></div><div class="stat"><small>État du site</small><b style="font-size:20px">En ligne</b></div></div><div class="panel"><h3>Dernières réservations</h3><div id="recent"></div></div></section>
-<section id="dest" style="display:none"><div class="panel"><h3>Ajouter une destination</h3><form onsubmit="addDest(event)" class="row"><div><label>Nom</label><input name="name" required><label>Région</label><input name="region" required><label>Ville proche</label><input name="near"></div><div><label>Catégorie</label><input name="category" placeholder="Plage, Nature..."><label>URL de l’image</label><input name="image" type="url" placeholder="https://..."><label>Description</label><textarea name="description" rows="3"></textarea></div><button class="btn">Ajouter</button></form></div><div class="panel"><h3>Liste des destinations</h3><div id="destTable"></div></div></section>
+<section id="dest" style="display:none"><div class="panel"><h3>Ajouter une destination</h3><form onsubmit="addDest(event)" class="row"><div><label>Nom</label><input name="name" required><label>Région</label><input name="region" required><label>Ville proche</label><input name="near"></div><div><label>Catégorie</label><input name="category" placeholder="Plage, Nature..."><label>Image de la destination</label>
+<input id="destImageFile" type="file" accept="image/*" onchange="previewDestImage(event)">
+<input type="hidden" name="image" id="destImageUrl">
+<img id="destImagePreview" alt="Aperçu de l’image" style="display:none;width:100%;max-width:260px;max-height:180px;object-fit:cover;border-radius:10px;margin:5px 0 14px">
+<p class="muted">Choisissez une image depuis votre galerie (8 Mo maximum).</p><label>Description</label><textarea name="description" rows="3"></textarea></div><button class="btn">Ajouter</button></form></div><div class="panel"><h3>Liste des destinations</h3><div id="destTable"></div></div></section>
 <section id="book" style="display:none"><div class="panel"><h3>Toutes les réservations</h3><div id="bookTable"></div></div></section>
 <section id="knowledge" style="display:none">
 <div class="panel">
@@ -72,7 +76,40 @@ async function refresh(){destinations=await api('/api/destinations');bookings=aw
 function tab(id){['dash','dest','book','knowledge','site','account'].forEach(x=>$(x).style.display=x===id?'block':'none');$('title').textContent={dash:'Tableau de bord',dest:'Destinations',book:'Réservations',knowledge:'Base de connaissances IA',site:'Contenu du site public',account:'Mon compte'}[id];if(id==='account')loadAccount()}
 function renderBooks(id,arr){$(id).innerHTML=arr.length?`<table><thead><tr><th>Client</th><th>Destination</th><th>Date</th><th>Personnes</th><th>Statut</th><th>Action</th></tr></thead><tbody>${arr.map(b=>`<tr><td>${esc(b.name)}<br><small>${esc(b.phone)}</small></td><td>${esc(b.destination)}</td><td>${esc(b.date)}</td><td>${b.people}</td><td><select onchange="status('${b.id}',this.value)"><option ${b.status==='Vaovao'?'selected':''}>Vaovao</option><option ${b.status==='Eo am-pikarakarana'?'selected':''}>Eo am-pikarakarana</option><option ${b.status==='Voamarina'?'selected':''}>Voamarina</option><option ${b.status==='Nofoanana'?'selected':''}>Nofoanana</option></select></td><td><button class="btn danger" onclick="delBook('${b.id}')">Supprimer</button></td></tr>`).join('')}</tbody></table>`:'<p class="muted">Aucun résultat.</p>'}
 function renderDest(){$('destTable').innerHTML=`<table><thead><tr><th>Destination</th><th>Région</th><th>Catégorie</th><th>Action</th></tr></thead><tbody>${destinations.map(d=>`<tr><td>${esc(d.name)}</td><td>${esc(d.region)}</td><td>${esc(d.category||'')}</td><td><button class="btn danger" onclick="delDest('${d.id}')">Supprimer</button></td></tr>`).join('')}</tbody></table>`}
-async function addDest(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.target));try{await api('/api/admin/destinations',{method:'POST',body:JSON.stringify(d)});e.target.reset();await refresh();alert('Destination ajoutée.')}catch(x){alert(x.message)}}
+function previewDestImage(e){
+ const file=e.target.files[0];
+ const preview=$('destImagePreview');
+ if(!file){preview.style.display='none';return}
+ if(!file.type.startsWith('image/')){alert('Sary ihany no azo fidina.');e.target.value='';return}
+ if(file.size>8*1024*1024){alert('8 Mo maximum ny haben’ny sary.');e.target.value='';return}
+ preview.src=URL.createObjectURL(file);
+ preview.style.display='block';
+}
+async function addDest(e){
+ e.preventDefault();
+ const d=Object.fromEntries(new FormData(e.target));
+ const file=$('destImageFile').files[0];
+ try{
+  if(file){
+   const data=new FormData();
+   data.append('image',file);
+   const r=await fetch('/api/admin/upload-image',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+token},
+    body:data
+   });
+   const result=await r.json();
+   if(!r.ok)throw Error(result.error||'Erreur upload image');
+   d.image=result.url;
+  }
+  await api('/api/admin/destinations',{method:'POST',body:JSON.stringify(d)});
+  e.target.reset();
+  $('destImagePreview').style.display='none';
+  $('destImagePreview').removeAttribute('src');
+  await refresh();
+  alert('Destination ajoutée.');
+ }catch(x){alert(x.message)}
+}
 async function status(id,s){try{await api('/api/admin/bookings/'+id,{method:'PATCH',body:JSON.stringify({status:s})});await refresh()}catch(e){alert(e.message)}}
 async function delBook(id){if(confirm('Supprimer cette réservation ?')){await api('/api/admin/bookings/'+id,{method:'DELETE'});await refresh()}}
 async function delDest(id){if(confirm('Supprimer cette destination ?')){await api('/api/admin/destinations/'+id,{method:'DELETE'});await refresh()}}
