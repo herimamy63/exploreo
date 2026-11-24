@@ -224,7 +224,9 @@ app.put("/api/admin/site-content",auth,asyncRoute(async(req,res)=>{
   const content=req.body;
   if(!content || typeof content!=="object" || Array.isArray(content))
     return res.status(400).json({error:"Données invalides."});
+  console.log("[SITE CONTENT SAVE] heroAds reçues:", JSON.stringify(content.heroAds || []));
   await write(SITE_FILE,content);
+  console.log("[SITE CONTENT SAVE] Enregistrement PostgreSQL réussi.");
   res.json({ok:true,message:"Contenu du site enregistré."});
 }));
 
