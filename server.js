@@ -22,6 +22,7 @@ const imageUpload = multer({
 const { initializeStorage, read, write } = require("./storage");
 
 const app = express();
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3001;
 const LLAMA_URL = process.env.LLAMA_URL || "http://127.0.0.1:8080/v1/chat/completions";
 const DATA_DIR = path.join(__dirname, "data");
