@@ -261,12 +261,45 @@ app.post("/api/ai",async(req,res)=>{
 
   const system="Tu es Explore’O IA, assistant touristique officiel de Madagascar. Réponds dans la langue utilisée par le visiteur. Pour les destinations, utilise uniquement les noms, régions et descriptions fournis dans les données du site. Tu peux présenter au maximum cinq destinations, sans répéter un nom. Ne prétends pas connaître des détails absents des données. N'invente jamais de tarifs, hôtels, contacts, horaires, disponibilités, transports ou prestations. Pour les prix et réservations, utilise uniquement les informations explicitement présentes dans les informations du site. Si une information manque, dis clairement qu'elle n'est pas encore renseignée et invite le visiteur à contacter l'équipe Explore’O. Si les données ne permettent pas de répondre, explique-le honnêtement. Voici les données disponibles : "+context;
   try{
-    const r=await fetch(LLAMA_URL,{method:"POST",headers:{"Content-Type":"application/json"},signal:AbortSignal.timeout(90000),
-      body:JSON.stringify({model:"local-model",messages:[{role:"system",content:system},{role:"user",content:question}],temperature:0.2,max_tokens:450})});
-    if(!r.ok) throw new Error("local model unavailable");
-    const data=await r.json(); const answer=data.choices?.[0]?.message?.content||"Tsy nahazo valiny.";
-    res.json({answer,offline:true});
-  }catch(e){res.status(503).json({error:"Tsy mandeha ny IA offline amin'izao. Alefaso aloha ny llama-server ao amin'ny port 8080."});}
+    if(!process.env.GEMINI_API_KEY)
+      throw new Error("GEMINI_API_KEY non configurée.");
+
+    const r=await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "x-goog-api-key":process.env.GEMINI_API_KEY
+        },
+        signal:AbortSignal.timeout(60000),
+        body:JSON.stringify({
+          systemInstruction:{parts:[{text:system}]},
+          contents:[{role:"user",parts:[{text:question}]}],
+          generationConfig:{temperature:0.2,maxOutputTokens:450}
+        })
+      }
+    );
+
+    if(!r.ok){
+      const details=await r.text();
+      console.error("Erreur Gemini API:",r.status,details.slice(0,1000));
+      throw new Error("Gemini API HTTP "+r.status);
+    }
+
+    const data=await r.json();
+    const answer=data.candidates?.[0]?.content?.parts
+      ?.map(part=>part.text||"").join("\\n").trim();
+
+    if(!answer) throw new Error("Réponse Gemini vide.");
+
+    res.json({answer,offline:false,source:"gemini"});
+  }catch(e){
+    console.error("Erreur IA Explore'O:",e.message);
+    res.status(503).json({
+      error:"L'assistant IA est temporairement indisponible. Réessayez dans quelques instants."
+    });
+  }
 });
 app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 initializeStorage()
