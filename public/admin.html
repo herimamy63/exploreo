@@ -276,10 +276,22 @@ async function saveSiteContent(){
   c.newsletter={title:get('newsletter.title'),description:get('newsletter.description'),buttonLabel:get('newsletter.buttonLabel')};
   c.footer={description:get('footer.description'),contactEmail:get('footer.contactEmail'),contactPhone:get('footer.contactPhone'),facebook:get('footer.facebook'),copyright:get('footer.copyright')};
   document.querySelectorAll('[data-circuit]').forEach(el=>{const i=Number(el.dataset.circuit);if(c.circuits[i])c.circuits[i][el.dataset.key]=el.value;});
-  c.heroAds=c.heroAds||[];
+  c.heroAds=Array.isArray(c.heroAds)?c.heroAds:[];
   document.querySelectorAll('[data-hero-ad]').forEach(el=>{
    const i=Number(el.dataset.heroAd);
-   if(c.heroAds[i])c.heroAds[i][el.dataset.key]=el.type==='checkbox'?el.checked:el.value;
+   if(!c.heroAds[i]){
+    c.heroAds[i]={
+     id:'hero-'+Date.now()+'-'+i,
+     eyebrow:'OFFRE SPÉCIALE',
+     title:'',
+     description:'',
+     image:'',
+     buttonLabel:'Réserver',
+     destination:'',
+     active:true
+    };
+   }
+   c.heroAds[i][el.dataset.key]=el.type==='checkbox'?el.checked:el.value;
   });
   const r=await api('/api/admin/site-content',{method:'PUT',body:JSON.stringify(c)});
   $('siteMessage').textContent=r.message||'Enregistré';
