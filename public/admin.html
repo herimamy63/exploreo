@@ -42,6 +42,12 @@
 <div id="siteEditor">Chargement...</div>
 </div>
 <div class="panel">
+<h3>🎯 Publicités du Hero Slider</h3>
+<p class="muted">Hantanterahana eto ireo offres sy publicités miseho eo amin’ny pejy fandraisana. Sary 5 farafahabetsany.</p>
+<div id="heroAdsEditor">Chargement des publicités...</div>
+<button class="btn" type="button" onclick="addHeroAd()">＋ Ajouter une publicité</button>
+</div>
+<div class="panel">
 <h3>Circuits touristiques</h3>
 <div id="circuitEditor"></div>
 <button class="btn" type="button" onclick="addCircuit()">＋ Ajouter un circuit</button>
@@ -182,7 +188,60 @@ function renderSiteContent(){
  ${field('Téléphone','footer.contactPhone',f.contactPhone)}
  ${field('Facebook','footer.facebook',f.facebook)}
  ${field('Copyright','footer.copyright',f.copyright)}`;
+
  renderCircuits();
+ renderHeroAds();
+}
+function renderHeroAds(){
+ const arr=siteContent.heroAds||[];
+ $('heroAdsEditor').innerHTML=arr.map((a,i)=>`
+ <div class="panel" style="border:1px solid #dce3ed;margin:12px 0">
+  <h4>Publicité ${i+1}</h4>
+  ${a.image?`<img src="${esc(a.image)}" alt="Aperçu" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px">`:'<p class="muted">Tsy mbola misy sary.</p>'}
+  <label>Sary avy amin’ny galerie</label>
+  <input type="file" accept="image/*" onchange="uploadHeroAdImage(${i},this)">
+  <p class="muted" id="heroUpload${i}"></p>
+  <label>Petit titre</label><input data-hero-ad="${i}" data-key="eyebrow" value="${esc(a.eyebrow||'')}">
+  <label>Grand titre</label><input data-hero-ad="${i}" data-key="title" value="${esc(a.title||'')}">
+  <label>Description</label><textarea data-hero-ad="${i}" data-key="description" rows="3">${esc(a.description||'')}</textarea>
+  <label>Texte du bouton</label><input data-hero-ad="${i}" data-key="buttonLabel" value="${esc(a.buttonLabel||'Réserver')}">
+  <label>Destination / offre à réserver</label><input data-hero-ad="${i}" data-key="destination" value="${esc(a.destination||'')}">
+  <label><input type="checkbox" data-hero-ad="${i}" data-key="active" ${a.active!==false?'checked':''}> Publicité active</label>
+  <button class="btn danger" type="button" onclick="removeHeroAd(${i})">Supprimer</button>
+ </div>`).join('')||'<p class="muted">Tsy mbola misy publicité. Tsindrio Ajouter une publicité.</p>';
+}
+function addHeroAd(){
+ if(!siteContent.heroAds)siteContent.heroAds=[];
+ if(siteContent.heroAds.length>=5){alert('Publicités 5 farafahabetsany.');return;}
+ siteContent.heroAds.push({id:'hero-'+Date.now(),eyebrow:'OFFRE SPÉCIALE',title:'Nouvelle aventure',description:'Découvrez Madagascar autrement.',image:'',buttonLabel:'Réserver',destination:'',active:true});
+ renderHeroAds();
+}
+function removeHeroAd(i){
+ if(confirm('Supprimer cette publicité ?')){
+  siteContent.heroAds.splice(i,1);
+  renderHeroAds();
+ }
+}
+async function uploadHeroAdImage(i,input){
+ const file=input.files&&input.files[0];
+ if(!file)return;
+ if(!file.type.startsWith('image/')){alert('Veuillez choisir une image.');return;}
+ if(file.size>8*1024*1024){alert('Image trop lourde : maximum 8 Mo.');input.value='';return;}
+ const status=$('heroUpload'+i);
+ status.textContent='Upload en cours...';
+ try{
+  const data=new FormData();
+  data.append('image',file);
+  const r=await fetch('/api/admin/upload-image',{method:'POST',headers:{Authorization:'Bearer '+token},body:data});
+  const result=await r.json();
+  if(!r.ok)throw Error(result.error||'Erreur upload');
+  siteContent.heroAds[i].image=result.url;
+  renderHeroAds();
+  alert('Sary tafakatra soa aman-tsara.');
+ }catch(e){
+  status.textContent=e.message;
+  alert(e.message);
+ }
 }
 function renderCircuits(){
  const arr=siteContent.circuits||[];
@@ -217,6 +276,11 @@ async function saveSiteContent(){
   c.newsletter={title:get('newsletter.title'),description:get('newsletter.description'),buttonLabel:get('newsletter.buttonLabel')};
   c.footer={description:get('footer.description'),contactEmail:get('footer.contactEmail'),contactPhone:get('footer.contactPhone'),facebook:get('footer.facebook'),copyright:get('footer.copyright')};
   document.querySelectorAll('[data-circuit]').forEach(el=>{const i=Number(el.dataset.circuit);if(c.circuits[i])c.circuits[i][el.dataset.key]=el.value;});
+  c.heroAds=c.heroAds||[];
+  document.querySelectorAll('[data-hero-ad]').forEach(el=>{
+   const i=Number(el.dataset.heroAd);
+   if(c.heroAds[i])c.heroAds[i][el.dataset.key]=el.type==='checkbox'?el.checked:el.value;
+  });
   const r=await api('/api/admin/site-content',{method:'PUT',body:JSON.stringify(c)});
   $('siteMessage').textContent=r.message||'Enregistré';
   alert('Vita voatahiry ny contenu.');
